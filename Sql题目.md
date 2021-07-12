@@ -179,3 +179,79 @@ t1
 where Num=bef and num = after
 ```
 
+# 手写Hql 1
+
+表结构：uid,subject_id,score
+
+求：找出所有科目成绩都大于某一学科平均成绩的学生
+
+数据集如下
+
+1001	01	90
+
+1001	02	90
+
+1001	03	90
+
+1002	01	85
+
+1002	02	85
+
+1002	03	70
+
+1003	01	70
+
+1003	02	70
+
+1003	03	85
+
+1）建表语句
+
+create table score(
+
+​    uid string,
+
+​    subject_id string,
+
+​    score int)
+
+row format delimited fields terminated by '\t'; 
+
+2）求出每个学科平均成绩
+
+```sql
+with t1 as
+(select
+subject_id ,
+avg（score） score_avg
+from
+score
+group by 
+subject_id),
+t2 as
+(select
+	uid,
+	score ,
+	score_avg  
+from
+score
+join
+t1
+on t1.subject_id = score.subject_id),
+t3 as 
+(
+select 
+    uid,
+    if(score > score_avg,0,1) flag
+from 
+    t2
+)
+select
+	uid
+from
+	t3
+group by
+	uid
+having sum(flag)=0
+```
+
