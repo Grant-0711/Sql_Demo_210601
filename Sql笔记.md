@@ -263,3 +263,105 @@ t_tree as
 select * from person.StateProvince where CountryRegionCode in (select * from t_tree)
 ```
 
+# where，having，group随笔
+
+where紧跟from，where后不能有别名
+
+group by 后面查询字段要和from前面的字段保持一致
+
+表起别名提高查询效率
+
+where后面不能跟分组函数
+
+having后面可以跟分组函数
+
+having只用于分组查询的条件语句
+
+having条件里用到了表里字段需要起别名
+
+案例
+
+```sql
+select
+	e.depton,
+	avg(sal) avg_s,
+from
+	emp
+group by
+	e.depton;
+	
+	
+SELECT
+	e.deptno,
+	AVG( sal ) sal_s 
+FROM
+	emp e 
+GROUP BY
+	e.deptno 
+HAVING
+	sal_s > 2000;
+```
+
+# 常用函数
+
+## 行转列（拼接）
+
+concat 拼接字符串
+
+```sql
+concat(string a,string b)
+```
+
+concat_ws 拼接字符串，传入拼接符
+
+```sql
+concat_ws(separator, str1, str2)
+SELECT 
+concat_ws('.', 'www', array('facebook', 'com')) 
+FROM src LIMIT 1;
+out: 'www.facebook.com'
+```
+
+collect_set 将某字段去重汇总返回array类型字段
+
+
+
+## 列转行（炸开）
+
+EXPLODE(col)：将hive一列中复杂的array或者map结构拆分成多行。
+
+explode 需要结合 lateral view使用
+
+lateral view 一般跟在from后面，一般是 lateral view + udtf(map或者数组类型的字段) +自定义表名 as 自定义列名
+
+案例：
+
+```sql
+--需求：
+《疑犯追踪》      悬疑
+《疑犯追踪》      动作
+《疑犯追踪》      科幻
+《疑犯追踪》      剧情
+《Lie to me》   悬疑
+《Lie to me》   警匪
+《Lie to me》   动作
+《Lie to me》   心理
+《Lie to me》   剧情
+《战狼2》        战争
+《战狼2》        动作
+《战狼2》        灾难
+
+--name         category
+《疑犯追踪》	悬疑,动作,科幻,剧情
+《Lie to me》	悬疑,警匪,动作,心理,剧情
+《战狼2》	战争,动作,灾难
+--实现
+select
+	m.movie,
+	tbl.cate
+from
+	movie_info m
+lateral view
+	explode(split(category,",")) tbl as cate;
+```
+
